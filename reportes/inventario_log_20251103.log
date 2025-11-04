@@ -1,0 +1,283 @@
+2025-11-03 14:32:09,170 - INFO - ================================================================================
+2025-11-03 14:32:09,170 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 14:32:09,170 - INFO - ================================================================================
+2025-11-03 14:32:09,170 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 14:32:09,170 - INFO - Modo: Incluye fines de semana
+2025-11-03 14:32:09,170 - ERROR - ✗ Error al leer ./inventarios\inventario_03-11-2025.xls: Missing optional dependency 'xlrd'. Install xlrd >= 2.0.1 for xls Excel support Use pip or conda to install xlrd.
+2025-11-03 14:32:09,187 - ERROR - ✗ Error al leer ./inventarios\inventario_04-11-2025.xls: Missing optional dependency 'xlrd'. Install xlrd >= 2.0.1 for xls Excel support Use pip or conda to install xlrd.
+2025-11-03 14:32:10,169 - ERROR - ✗ Error al leer ./inventarios\inventario_05-11-2025.xls: Missing optional dependency 'xlrd'. Install xlrd >= 2.0.1 for xls Excel support Use pip or conda to install xlrd.
+2025-11-03 14:32:10,204 - ERROR - ✗ Error al leer ./inventarios\inventario_06-11-2025.xls: Missing optional dependency 'xlrd'. Install xlrd >= 2.0.1 for xls Excel support Use pip or conda to install xlrd.
+2025-11-03 14:32:10,204 - ERROR - ✗ Error al leer ./inventarios\inventario_07-11-2025.xls: Missing optional dependency 'xlrd'. Install xlrd >= 2.0.1 for xls Excel support Use pip or conda to install xlrd.
+2025-11-03 14:32:10,204 - WARNING - ✗ No se encontró archivo para Saturday (2025-11-08)
+2025-11-03 14:32:10,204 - WARNING - ✗ No se encontró archivo para Sunday (2025-11-09)
+2025-11-03 14:32:10,218 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 412, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 129, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 14:36:06,504 - INFO - ================================================================================
+2025-11-03 14:36:06,504 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 14:36:06,504 - INFO - ================================================================================
+2025-11-03 14:36:06,504 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 14:36:06,504 - INFO - Modo: Incluye fines de semana
+2025-11-03 14:36:06,504 - WARNING - ✗ No se encontró archivo para Monday (2025-11-03)
+2025-11-03 14:36:06,504 - WARNING - ✗ No se encontró archivo para Tuesday (2025-11-04)
+2025-11-03 14:36:06,516 - WARNING - ✗ No se encontró archivo para Wednesday (2025-11-05)
+2025-11-03 14:36:06,517 - WARNING - ✗ No se encontró archivo para Thursday (2025-11-06)
+2025-11-03 14:36:06,519 - WARNING - ✗ No se encontró archivo para Friday (2025-11-07)
+2025-11-03 14:36:06,521 - WARNING - ✗ No se encontró archivo para Saturday (2025-11-08)
+2025-11-03 14:36:06,522 - WARNING - ✗ No se encontró archivo para Sunday (2025-11-09)
+2025-11-03 14:36:06,525 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 412, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 129, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 14:47:00,321 - INFO - ================================================================================
+2025-11-03 14:47:00,321 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 14:47:00,321 - INFO - ================================================================================
+2025-11-03 14:47:00,321 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 14:47:00,321 - INFO - Modo: Incluye fines de semana
+2025-11-03 14:47:00,336 - WARNING - ✗ No se encontró archivo para Monday (2025-11-03)
+2025-11-03 14:47:00,336 - WARNING - ✗ No se encontró archivo para Tuesday (2025-11-04)
+2025-11-03 14:47:00,336 - WARNING - ✗ No se encontró archivo para Wednesday (2025-11-05)
+2025-11-03 14:47:00,341 - WARNING - ✗ No se encontró archivo para Thursday (2025-11-06)
+2025-11-03 14:47:00,344 - WARNING - ✗ No se encontró archivo para Friday (2025-11-07)
+2025-11-03 14:47:00,347 - WARNING - ✗ No se encontró archivo para Saturday (2025-11-08)
+2025-11-03 14:47:00,347 - WARNING - ✗ No se encontró archivo para Sunday (2025-11-09)
+2025-11-03 14:47:00,347 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 412, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 129, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 14:50:25,229 - INFO - ================================================================================
+2025-11-03 14:50:25,229 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 14:50:25,229 - INFO - ================================================================================
+2025-11-03 14:50:25,229 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 14:50:25,229 - INFO - Modo: Incluye fines de semana
+2025-11-03 14:50:25,229 - WARNING - ✗ No se encontró archivo para Monday (2025-11-03)
+2025-11-03 14:50:25,229 - WARNING - ✗ No se encontró archivo para Tuesday (2025-11-04)
+2025-11-03 14:50:25,229 - WARNING - ✗ No se encontró archivo para Wednesday (2025-11-05)
+2025-11-03 14:50:25,229 - WARNING - ✗ No se encontró archivo para Thursday (2025-11-06)
+2025-11-03 14:50:25,236 - WARNING - ✗ No se encontró archivo para Friday (2025-11-07)
+2025-11-03 14:50:25,237 - WARNING - ✗ No se encontró archivo para Saturday (2025-11-08)
+2025-11-03 14:50:25,239 - WARNING - ✗ No se encontró archivo para Sunday (2025-11-09)
+2025-11-03 14:50:25,239 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 412, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 129, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 14:56:53,192 - INFO - ================================================================================
+2025-11-03 14:56:53,192 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 14:56:53,192 - INFO - ================================================================================
+2025-11-03 14:56:53,207 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 14:56:53,207 - INFO - Modo: Incluye fines de semana
+2025-11-03 14:56:53,207 - INFO - ============================================================
+2025-11-03 14:56:53,207 - INFO - 📁 DIAGNÓSTICO: Archivos encontrados en la carpeta
+2025-11-03 14:56:53,207 - INFO - ============================================================
+2025-11-03 14:56:53,207 - INFO - ✓ Total de archivos encontrados: 5
+2025-11-03 14:56:53,207 - INFO -   • inventario_2025-10-06.csv
+2025-11-03 14:56:53,207 - INFO -   • inventario_2025-10-07.csv
+2025-11-03 14:56:53,207 - INFO -   • inventario_2025-10-08.csv
+2025-11-03 14:56:53,207 - INFO -   • inventario_2025-10-09.csv
+2025-11-03 14:56:53,207 - INFO -   • inventario_2025-10-10.csv
+2025-11-03 14:56:53,207 - INFO - ============================================================
+2025-11-03 14:56:53,207 - INFO - 🔍 AUTO-DETECCIÓN: Usando semana del 2025-10-06
+2025-11-03 14:56:53,207 - INFO -    (basado en archivo más reciente: 2025-10-10)
+2025-11-03 14:56:53,213 - INFO - ============================================================
+2025-11-03 14:56:53,219 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-06.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 14:56:53,225 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-07.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 14:56:53,228 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-08.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 14:56:53,229 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-09.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 14:56:53,230 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-10.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 14:56:53,232 - WARNING - ✗ No se encontró archivo para Saturday (2025-10-11)
+2025-11-03 14:56:53,234 - WARNING - ✗ No se encontró archivo para Sunday (2025-10-12)
+2025-11-03 14:56:53,234 - ERROR - ============================================================
+2025-11-03 14:56:53,234 - ERROR - ❌ ERROR: Se requieren al menos 3 días válidos
+2025-11-03 14:56:53,237 - ERROR -    Solo se encontraron: 0 días
+2025-11-03 14:56:53,237 - ERROR -    Semana analizada: 2025-10-06 a 2025-10-12
+2025-11-03 14:56:53,238 - ERROR - ============================================================
+2025-11-03 14:56:53,238 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 470, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 187, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 15:02:34,714 - INFO - ================================================================================
+2025-11-03 15:02:34,714 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 15:02:34,714 - INFO - ================================================================================
+2025-11-03 15:02:34,714 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 15:02:34,714 - INFO - Modo: Incluye fines de semana
+2025-11-03 15:02:34,714 - INFO - ============================================================
+2025-11-03 15:02:34,714 - INFO - 📁 DIAGNÓSTICO: Archivos encontrados en la carpeta
+2025-11-03 15:02:34,714 - INFO - ============================================================
+2025-11-03 15:02:34,714 - INFO - ✓ Total de archivos encontrados: 5
+2025-11-03 15:02:34,714 - INFO -   • inventario_2025-10-06.csv
+2025-11-03 15:02:34,714 - INFO -   • inventario_2025-10-07.csv
+2025-11-03 15:02:34,714 - INFO -   • inventario_2025-10-08.csv
+2025-11-03 15:02:34,714 - INFO -   • inventario_2025-10-09.csv
+2025-11-03 15:02:34,714 - INFO -   • inventario_2025-10-10.csv
+2025-11-03 15:02:34,714 - INFO - ============================================================
+2025-11-03 15:02:34,714 - INFO - 🔍 AUTO-DETECCIÓN: Usando semana del 2025-10-06
+2025-11-03 15:02:34,714 - INFO -    (basado en archivo más reciente: 2025-10-10)
+2025-11-03 15:02:34,714 - INFO - ============================================================
+2025-11-03 15:02:34,728 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-06.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 15:02:34,729 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-07.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 15:02:34,732 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-08.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 15:02:34,734 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-09.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 15:02:34,735 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-10.csv: 'utf-8' codec can't decode byte 0x82 in position 57: invalid start byte
+2025-11-03 15:02:34,737 - WARNING - ✗ No se encontró archivo para Saturday (2025-10-11)
+2025-11-03 15:02:34,737 - WARNING - ✗ No se encontró archivo para Sunday (2025-10-12)
+2025-11-03 15:02:34,737 - ERROR - ============================================================
+2025-11-03 15:02:34,737 - ERROR - ❌ ERROR: Se requieren al menos 3 días válidos
+2025-11-03 15:02:34,737 - ERROR -    Solo se encontraron: 0 días
+2025-11-03 15:02:34,740 - ERROR -    Semana analizada: 2025-10-06 a 2025-10-12
+2025-11-03 15:02:34,741 - ERROR - ============================================================
+2025-11-03 15:02:34,741 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 469, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 186, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 15:06:12,529 - INFO - ================================================================================
+2025-11-03 15:06:12,529 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 15:06:12,529 - INFO - ================================================================================
+2025-11-03 15:06:12,529 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 15:06:12,529 - INFO - Modo: Incluye fines de semana
+2025-11-03 15:06:12,529 - INFO - ============================================================
+2025-11-03 15:06:12,529 - INFO - 📁 DIAGNÓSTICO: Archivos encontrados en la carpeta
+2025-11-03 15:06:12,529 - INFO - ============================================================
+2025-11-03 15:06:12,539 - INFO - ✓ Total de archivos encontrados: 5
+2025-11-03 15:06:12,539 - INFO -   • inventario_2025-10-06.csv
+2025-11-03 15:06:12,539 - INFO -   • inventario_2025-10-07.csv
+2025-11-03 15:06:12,540 - INFO -   • inventario_2025-10-08.csv
+2025-11-03 15:06:12,540 - INFO -   • inventario_2025-10-09.csv
+2025-11-03 15:06:12,540 - INFO -   • inventario_2025-10-10.csv
+2025-11-03 15:06:12,542 - INFO - ============================================================
+2025-11-03 15:06:12,542 - INFO - 🔍 AUTO-DETECCIÓN: Usando semana del 2025-10-06
+2025-11-03 15:06:12,543 - INFO -    (basado en archivo más reciente: 2025-10-10)
+2025-11-03 15:06:12,543 - INFO - ============================================================
+2025-11-03 15:06:12,609 - ERROR - Columnas disponibles en el archivo: ['codigo_producto;nombre_producto;cantidad']
+2025-11-03 15:06:12,609 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-06.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:06:12,624 - ERROR - Columnas disponibles en el archivo: ['codigo_producto;nombre_producto;cantidad']
+2025-11-03 15:06:12,625 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-07.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:06:12,627 - ERROR - Columnas disponibles en el archivo: ['codigo_producto;nombre_producto;cantidad']
+2025-11-03 15:06:12,628 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-08.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:06:12,631 - ERROR - Columnas disponibles en el archivo: ['codigo_producto;nombre_producto;cantidad']
+2025-11-03 15:06:12,632 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-09.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:06:12,634 - ERROR - Columnas disponibles en el archivo: ['codigo_producto;nombre_producto;cantidad']
+2025-11-03 15:06:12,635 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-10.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:06:12,636 - WARNING - ✗ No se encontró archivo para Saturday (2025-10-11)
+2025-11-03 15:06:12,638 - WARNING - ✗ No se encontró archivo para Sunday (2025-10-12)
+2025-11-03 15:06:12,638 - ERROR - ============================================================
+2025-11-03 15:06:12,639 - ERROR - ❌ ERROR: Se requieren al menos 3 días válidos
+2025-11-03 15:06:12,639 - ERROR -    Solo se encontraron: 0 días
+2025-11-03 15:06:12,640 - ERROR -    Semana analizada: 2025-10-06 a 2025-10-12
+2025-11-03 15:06:12,640 - ERROR - ============================================================
+2025-11-03 15:06:12,641 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 493, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 187, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 15:09:05,293 - INFO - ================================================================================
+2025-11-03 15:09:05,294 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 15:09:05,294 - INFO - ================================================================================
+2025-11-03 15:09:05,294 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 15:09:05,295 - INFO - Modo: Incluye fines de semana
+2025-11-03 15:09:05,295 - INFO - ============================================================
+2025-11-03 15:09:05,295 - INFO - 📁 DIAGNÓSTICO: Archivos encontrados en la carpeta
+2025-11-03 15:09:05,295 - INFO - ============================================================
+2025-11-03 15:09:05,296 - INFO - ✓ Total de archivos encontrados: 5
+2025-11-03 15:09:05,297 - INFO -   • inventario_2025-10-06.csv
+2025-11-03 15:09:05,297 - INFO -   • inventario_2025-10-07.csv
+2025-11-03 15:09:05,297 - INFO -   • inventario_2025-10-08.csv
+2025-11-03 15:09:05,297 - INFO -   • inventario_2025-10-09.csv
+2025-11-03 15:09:05,298 - INFO -   • inventario_2025-10-10.csv
+2025-11-03 15:09:05,299 - INFO - ============================================================
+2025-11-03 15:09:05,300 - INFO - 🔍 AUTO-DETECCIÓN: Usando semana del 2025-10-06
+2025-11-03 15:09:05,300 - INFO -    (basado en archivo más reciente: 2025-10-10)
+2025-11-03 15:09:05,300 - INFO - ============================================================
+2025-11-03 15:09:05,310 - ERROR - Columnas disponibles en el archivo: ['codigo;nombre;cantidad']
+2025-11-03 15:09:05,310 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-06.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:09:05,315 - ERROR - Columnas disponibles en el archivo: ['codigo;nombre;cantidad']
+2025-11-03 15:09:05,316 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-07.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:09:05,318 - ERROR - Columnas disponibles en el archivo: ['codigo;nombre;cantidad']
+2025-11-03 15:09:05,318 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-08.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:09:05,321 - ERROR - Columnas disponibles en el archivo: ['codigo;nombre;cantidad']
+2025-11-03 15:09:05,321 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-09.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:09:05,324 - ERROR - Columnas disponibles en el archivo: ['codigo;nombre;cantidad']
+2025-11-03 15:09:05,324 - ERROR - ✗ Error al leer ./inventarios\inventario_2025-10-10.csv: Columnas requeridas no encontradas: ['codigo_producto', 'nombre_producto', 'cantidad']
+2025-11-03 15:09:05,326 - WARNING - ✗ No se encontró archivo para Saturday (2025-10-11)
+2025-11-03 15:09:05,327 - WARNING - ✗ No se encontró archivo para Sunday (2025-10-12)
+2025-11-03 15:09:05,327 - ERROR - ============================================================
+2025-11-03 15:09:05,331 - ERROR - ❌ ERROR: Se requieren al menos 3 días válidos
+2025-11-03 15:09:05,332 - ERROR -    Solo se encontraron: 0 días
+2025-11-03 15:09:05,332 - ERROR -    Semana analizada: 2025-10-06 a 2025-10-12
+2025-11-03 15:09:05,333 - ERROR - ============================================================
+2025-11-03 15:09:05,333 - ERROR - Error en el análisis: Se requieren al menos 3 días válidos. Solo se encontraron 0
+Traceback (most recent call last):
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 493, in ejecutar_analisis_completo
+    df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\IVAN\PYTHON IVÁN\analisis_datos\proyecto\script_analisis.py", line 187, in cargar_archivos_semana
+    raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+ValueError: Se requieren al menos 3 días válidos. Solo se encontraron 0
+2025-11-03 15:12:53,181 - INFO - ================================================================================
+2025-11-03 15:12:53,182 - INFO - INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO
+2025-11-03 15:12:53,182 - INFO - ================================================================================
+2025-11-03 15:12:53,182 - INFO - Iniciando análisis para semana del 2025-11-03
+2025-11-03 15:12:53,183 - INFO - Modo: Incluye fines de semana
+2025-11-03 15:12:53,183 - INFO - ============================================================
+2025-11-03 15:12:53,183 - INFO - 📁 DIAGNÓSTICO: Archivos encontrados en la carpeta
+2025-11-03 15:12:53,183 - INFO - ============================================================
+2025-11-03 15:12:53,184 - INFO - ✓ Total de archivos encontrados: 5
+2025-11-03 15:12:53,185 - INFO -   • inventario_2025-10-06.csv
+2025-11-03 15:12:53,185 - INFO -   • inventario_2025-10-07.csv
+2025-11-03 15:12:53,185 - INFO -   • inventario_2025-10-08.csv
+2025-11-03 15:12:53,185 - INFO -   • inventario_2025-10-09.csv
+2025-11-03 15:12:53,185 - INFO -   • inventario_2025-10-10.csv
+2025-11-03 15:12:53,186 - INFO - ============================================================
+2025-11-03 15:12:53,187 - INFO - 🔍 AUTO-DETECCIÓN: Usando semana del 2025-10-06
+2025-11-03 15:12:53,187 - INFO -    (basado en archivo más reciente: 2025-10-10)
+2025-11-03 15:12:53,187 - INFO - ============================================================
+2025-11-03 15:12:53,267 - INFO - 📅 Archivo cargado: Monday (2025-10-06) - 7 productos
+2025-11-03 15:12:53,274 - INFO - 📅 Archivo cargado: Tuesday (2025-10-07) - 7 productos
+2025-11-03 15:12:53,283 - INFO - 📅 Archivo cargado: Wednesday (2025-10-08) - 7 productos
+2025-11-03 15:12:53,292 - INFO - 📅 Archivo cargado: Thursday (2025-10-09) - 7 productos
+2025-11-03 15:12:53,303 - INFO - 📅 Archivo cargado: Friday (2025-10-10) - 7 productos
+2025-11-03 15:12:53,305 - WARNING - ✗ No se encontró archivo para Saturday (2025-10-11)
+2025-11-03 15:12:53,306 - WARNING - ✗ No se encontró archivo para Sunday (2025-10-12)
+2025-11-03 15:12:53,307 - WARNING - ⚠️ Días sin archivo: Saturday (2025-10-11), Sunday (2025-10-12)
+2025-11-03 15:12:53,307 - INFO - ✓ Días procesados exitosamente: Monday (2025-10-06), Tuesday (2025-10-07), Wednesday (2025-10-08), Thursday (2025-10-09), Friday (2025-10-10)
+2025-11-03 15:12:53,311 - INFO - Dataset consolidado: 35 registros
+2025-11-03 15:12:53,312 - INFO -   - Días laborables (L-V): 5
+2025-11-03 15:12:53,367 - INFO - Productos con movimiento significativo: 7
+2025-11-03 15:12:53,375 - INFO - Distribución de alertas:
+2025-11-03 15:12:53,375 - INFO -   🟠 MEDIA: 2 productos
+2025-11-03 15:12:53,375 - INFO -   🟢 ESTABLE: 2 productos
+2025-11-03 15:12:53,376 - INFO -   🟡 MODERADA: 2 productos
+2025-11-03 15:12:53,376 - INFO -   🔴 CRÍTICA: 1 productos
+2025-11-03 15:12:54,293 - INFO - Reporte generado exitosamente: ./reportes\reporte_inventario_semana_20251103_151253.xlsx
+2025-11-03 15:12:54,294 - WARNING - ⚠️ 1 PRODUCTOS EN ESTADO CRÍTICO
+2025-11-03 15:12:54,295 - WARNING - Revise el reporte para tomar acciones inmediatas
+2025-11-03 15:12:54,295 - INFO - ================================================================================
+2025-11-03 15:12:54,295 - INFO - ANÁLISIS COMPLETADO EXITOSAMENTE
+2025-11-03 15:12:54,295 - INFO - ================================================================================
