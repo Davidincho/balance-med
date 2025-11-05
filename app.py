@@ -22,6 +22,37 @@ st.markdown("**Dispensadora de Medicamentos - Colombia**")
 with st.sidebar:
     st.header("⚙️ Configuración")
     
+    # Selector de modo de análisis
+    modo_analisis = st.radio(
+        "Modo de análisis:",
+        options=["Semana automática", "Rango de fechas personalizado"],
+        help="Semana automática: analiza la semana de los archivos subidos\nRango personalizado: elige fechas específicas"
+    )
+    
+    fecha_inicio = None
+    fecha_fin = None
+    
+    if modo_analisis == "Rango de fechas personalizado":
+        col1, col2 = st.columns(2)
+        with col1:
+            fecha_inicio = st.date_input(
+                "Fecha inicio:",
+                value=datetime(2025, 10, 30),
+                help="Primer día del análisis"
+            )
+        with col2:
+            fecha_fin = st.date_input(
+                "Fecha fin:",
+                value=datetime.now(),
+                help="Último día del análisis"
+            )
+        
+        # Validar que fecha_fin sea mayor que fecha_inicio
+        if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
+            st.error("⚠️ La fecha de inicio debe ser anterior a la fecha fin")
+    
+    st.divider()
+    
     incluir_fines_semana = st.checkbox(
         "Incluir fines de semana (jornadas extraordinarias)",
         value=True,
@@ -144,8 +175,9 @@ if archivos_subidos:
                     with col1:
                         st.bar_chart(datos_grafico.set_index('Estado'), height=300)
                     with col2:
+                        # Mostrar tabla sin gradient (sin matplotlib)
                         st.dataframe(
-                            datos_grafico.style.background_gradient(cmap='RdYlGn_r', subset=['Cantidad']),
+                            datos_grafico,
                             use_container_width=True,
                             hide_index=True
                         )
@@ -159,12 +191,9 @@ if archivos_subidos:
                     if len(df_criticas) > 0:
                         st.warning(f"⚠️ {len(df_criticas)} productos requieren atención INMEDIATA")
                         
-                        # Estilo para la tabla
-                        def highlight_critical(s):
-                            return ['background-color: #ffebee'] * len(s)
-                        
+                        # Mostrar tabla de críticas sin gradient
                         st.dataframe(
-                            df_criticas.style.apply(highlight_critical, axis=1),
+                            df_criticas,
                             use_container_width=True,
                             hide_index=True,
                             height=400
