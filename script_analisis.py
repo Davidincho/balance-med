@@ -356,8 +356,16 @@ class InventoryAnalyzer:
                     break
                 for delim in delimitadores:
                     try:
-                        df_temp = pd.read_csv(archivo, encoding=encoding, sep=delim)
-                        # Verificar que se hayan leído múltiples columnas (no todo en una sola columna)
+                        # IMPORTANTE: decimal=',' para manejar números europeos
+                        # Si tus números usan punto como separador de miles: 1.234,56
+                        df_temp = pd.read_csv(
+                            archivo, 
+                            encoding=encoding, 
+                            sep=delim,
+                            decimal=',',  # Coma como separador decimal
+                            thousands='.'  # Punto como separador de miles
+                        )
+                        # Verificar que se hayan leído múltiples columnas
                         if len(df_temp.columns) > 1:
                             df = df_temp
                             encoding_exitoso = encoding
@@ -368,6 +376,29 @@ class InventoryAnalyzer:
                         continue
                     except Exception as e:
                         continue
+            
+            # Si no funcionó, intentar con decimal='.' (formato internacional)
+            if df is None:
+                for encoding in codificaciones:
+                    if df is not None:
+                        break
+                    for delim in delimitadores:
+                        try:
+                            df_temp = pd.read_csv(
+                                archivo, 
+                                encoding=encoding, 
+                                sep=delim,
+                                decimal='.',  # Punto como separador decimal
+                                thousands=','  # Coma como separador de miles
+                            )
+                            if len(df_temp.columns) > 1:
+                                df = df_temp
+                                encoding_exitoso = encoding
+                                delimitador_exitoso = delim
+                                self.logger.debug(f"✓ Archivo leído: encoding={encoding}, delimitador='{delim}' (formato internacional)")
+                                break
+                        except:
+                            continue
             
             if df is None:
                 # Último intento: usar el sniffer de Python para detectar delimitador
@@ -380,7 +411,7 @@ class InventoryAnalyzer:
                     
                     for encoding in codificaciones:
                         try:
-                            df = pd.read_csv(archivo, encoding=encoding, sep=delim_detectado)
+                            df = pd.read_csv(archivo, encoding=encoding, sep=delim_detectado, decimal=',', thousands='.')
                             if len(df.columns) > 1:
                                 encoding_exitoso = encoding
                                 delimitador_exitoso = delim_detectado
@@ -438,7 +469,24 @@ class InventoryAnalyzer:
         # Limpiar datos
         df['codigo_producto'] = df['codigo_producto'].astype(str).str.strip()
         df['nombre_producto'] = df['nombre_producto'].astype(str).str.strip()
-        df['cantidad'] = pd.to_numeric(df['cantidad'], errors='coerce').fillna(0)
+        
+        # CRÍTICO: Limpiar y convertir cantidad correctamente
+        # Manejar diferentes formatos numéricos
+        def limpiar_cantidad(val):
+            if pd.isna(val):
+                return 0
+            if isinstance(val, (int, float)):
+                return float(val)
+            # Si es string, limpiar
+            val_str = str(val).strip()
+            # Remover separadores de miles comunes
+            val_str = val_str.replace('.', '').replace(',', '.')
+            try:
+                return float(val_str)
+            except:
+                return 0
+        
+        df['cantidad'] = df['cantidad'].apply(limpiar_cantidad)
         
         # Eliminar duplicados dentro del mismo archivo
         df = df.drop_duplicates(subset=['codigo_producto'], keep='first')
@@ -593,6 +641,12 @@ class InventoryAnalyzer:
             'variacion_semanal', 'promedio_semanal', 'dias_con_registro', 'posible_reabastecimiento',
             'alerta', 'fecha_inicial', 'fecha_final'
         ]].copy()
+        
+        # Redondear números para mejor visualización
+        df_export['cantidad_inicial'] = df_export['cantidad_inicial'].round(0).astype(int)
+        df_export['cantidad_final'] = df_export['cantidad_final'].round(0).astype(int)
+        df_export['variacion_semanal'] = df_export['variacion_semanal'].round(0).astype(int)
+        df_export['promedio_semanal'] = df_export['promedio_semanal'].round(1)
         
         # Renombrar columnas para el reporte
         df_export.columns = [
