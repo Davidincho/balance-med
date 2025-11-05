@@ -214,6 +214,120 @@ class InventoryAnalyzer:
         
         return df_consolidado, dias_faltantes
     
+    def _cargar_archivos_rango_personalizado(self, fecha_inicio, fecha_fin):
+        """
+        Carga archivos para un rango de fechas personalizado
+        
+        Args:
+            fecha_inicio: Fecha de inicio del rango
+            fecha_fin: Fecha fin del rango
+            
+        Returns:
+            DataFrame consolidado y lista de días faltantes
+        """
+        self.logger.info("="*60)
+        self.logger.info(f"📅 ANÁLISIS DE RANGO PERSONALIZADO")
+        self.logger.info(f"Desde: {fecha_inicio.strftime('%Y-%m-%d')}")
+        self.logger.info(f"Hasta: {fecha_fin.strftime('%Y-%m-%d')}")
+        self.logger.info(f"Modo: {'Incluye fines de semana' if self.incluir_fines_semana else 'Solo días laborables'}")
+        self.logger.info("="*60)
+        
+        # Listar TODOS los archivos disponibles
+        self.logger.info("📁 Archivos disponibles en la carpeta:")
+        todos_archivos = []
+        for ext in ['*.xlsx', '*.xls', '*.csv']:
+            todos_archivos.extend(glob.glob(os.path.join(self.input_folder, ext)))
+        
+        if not todos_archivos:
+            self.logger.error(f"❌ No se encontraron archivos en: {os.path.abspath(self.input_folder)}")
+            raise FileNotFoundError(f"No hay archivos de inventario en {self.input_folder}")
+        
+        for archivo in sorted(todos_archivos):
+            self.logger.info(f"  • {os.path.basename(archivo)}")
+        
+        # Iterar día por día en el rango
+        datos_semanales = []
+        dias_faltantes = []
+        dias_encontrados = []
+        
+        fecha_actual = fecha_inicio
+        while fecha_actual <= fecha_fin:
+            fecha_str = fecha_actual.strftime('%Y-%m-%d')
+            nombre_dia = fecha_actual.strftime('%A')
+            es_fin_semana = nombre_dia in ['Saturday', 'Sunday']
+            
+            # Si no incluye fines de semana y es fin de semana, saltar
+            if not self.incluir_fines_semana and es_fin_semana:
+                self.logger.info(f"⊝ Fin de semana omitido: {nombre_dia} ({fecha_str})")
+                fecha_actual += timedelta(days=1)
+                continue
+            
+            # Buscar archivo
+            patrones = [
+                f"inventario_{fecha_str}.*",
+                f"inventario_{fecha_actual.strftime('%Y%m%d')}.*",
+                f"*{fecha_str}.*",
+                f"*{fecha_actual.strftime('%d-%m-%Y')}.*"
+            ]
+            
+            archivo_encontrado = None
+            for patron in patrones:
+                archivos = glob.glob(os.path.join(self.input_folder, patron))
+                if archivos:
+                    archivo_encontrado = archivos[0]
+                    break
+            
+            if archivo_encontrado:
+                try:
+                    df = self.leer_archivo(archivo_encontrado)
+                    df['fecha_reporte'] = fecha_actual
+                    df['dia_semana'] = nombre_dia
+                    df['es_fin_semana'] = es_fin_semana
+                    datos_semanales.append(df)
+                    dias_encontrados.append(f"{nombre_dia} ({fecha_str})")
+                    
+                    emoji_dia = "📅" if not es_fin_semana else "🗓️"
+                    self.logger.info(f"{emoji_dia} Archivo cargado: {nombre_dia} ({fecha_str}) - {len(df)} productos")
+                except Exception as e:
+                    self.logger.error(f"✗ Error al leer {archivo_encontrado}: {str(e)}")
+                    dias_faltantes.append(f"{nombre_dia} ({fecha_str})")
+            else:
+                dias_faltantes.append(f"{nombre_dia} ({fecha_str})")
+                self.logger.warning(f"✗ No se encontró archivo para {nombre_dia} ({fecha_str})")
+            
+            fecha_actual += timedelta(days=1)
+        
+        # Validar días mínimos
+        if len(datos_semanales) < self.min_dias_validos:
+            self.logger.error("="*60)
+            self.logger.error(f"❌ ERROR: Se requieren al menos {self.min_dias_validos} días válidos")
+            self.logger.error(f"   Solo se encontraron: {len(datos_semanales)} días")
+            self.logger.error(f"   Rango analizado: {fecha_inicio.strftime('%Y-%m-%d')} a {fecha_fin.strftime('%Y-%m-%d')}")
+            self.logger.error("="*60)
+            raise ValueError(f"Se requieren al menos {self.min_dias_validos} días válidos. Solo se encontraron {len(datos_semanales)}")
+        
+        if dias_faltantes:
+            self.logger.warning(f"⚠️ Días sin archivo en el rango: {', '.join(dias_faltantes)}")
+        
+        if dias_encontrados:
+            self.logger.info(f"✓ Días procesados exitosamente ({len(dias_encontrados)}): {', '.join(dias_encontrados[:5])}")
+            if len(dias_encontrados) > 5:
+                self.logger.info(f"   ... y {len(dias_encontrados) - 5} más")
+        
+        # Consolidar datos
+        df_consolidado = pd.concat(datos_semanales, ignore_index=True)
+        
+        # Contar días normales vs extraordinarios
+        dias_normales = len([d for d in datos_semanales if not d['es_fin_semana'].iloc[0]])
+        dias_extraordinarios = len([d for d in datos_semanales if d['es_fin_semana'].iloc[0]])
+        
+        self.logger.info(f"Dataset consolidado: {len(df_consolidado)} registros")
+        self.logger.info(f"  - Días laborables (L-V): {dias_normales}")
+        if dias_extraordinarios > 0:
+            self.logger.info(f"  - Jornadas extraordinarias (S-D): {dias_extraordinarios}")
+        
+        return df_consolidado, dias_faltantes
+    
     def leer_archivo(self, archivo):
         """
         Lee un archivo de inventario (Excel o CSV) con manejo robusto de codificaciones y delimitadores
@@ -361,6 +475,9 @@ class InventoryAnalyzer:
         # Calcular variación (consumo = inicial - final)
         df_analisis['variacion_semanal'] = df_analisis['cantidad_inicial'] - df_analisis['cantidad_final']
         
+        # Identificar posibles reabastecimientos (variación negativa)
+        df_analisis['posible_reabastecimiento'] = df_analisis['variacion_semanal'] < 0
+        
         # Calcular promedio semanal
         promedios = df_consolidado.groupby('codigo_producto')['cantidad'].mean().reset_index()
         promedios.rename(columns={'cantidad': 'promedio_semanal'}, inplace=True)
@@ -370,6 +487,15 @@ class InventoryAnalyzer:
         dias_registro = df_consolidado.groupby('codigo_producto').size().reset_index(name='dias_con_registro')
         df_analisis = df_analisis.merge(dias_registro, on='codigo_producto', how='left')
         
+        # Calcular variación máxima diaria para detectar reabastecimientos
+        df_analisis['variacion_maxima_diaria'] = 0
+        for producto in df_analisis['codigo_producto'].unique():
+            datos_prod = df_sorted[df_sorted['codigo_producto'] == producto].copy()
+            if len(datos_prod) > 1:
+                datos_prod['var_diaria'] = datos_prod['cantidad'].diff()
+                max_var = datos_prod['var_diaria'].max()
+                df_analisis.loc[df_analisis['codigo_producto'] == producto, 'variacion_maxima_diaria'] = max_var
+        
         # Excluir productos sin movimiento significativo
         # Excluir si: variación = 0 O solo aparece 1 día
         df_analisis = df_analisis[
@@ -377,7 +503,15 @@ class InventoryAnalyzer:
             (df_analisis['dias_con_registro'] > 1)
         ].copy()
         
+        # Log de reabastecimientos detectados
+        reabastecimientos = df_analisis[df_analisis['posible_reabastecimiento'] == True]
+        if len(reabastecimientos) > 0:
+            self.logger.warning(f"⚠️ Se detectaron {len(reabastecimientos)} productos con posible reabastecimiento (variación negativa)")
+            self.logger.warning("   Estos productos se marcarán como 'Revisar' en el reporte")
+        
         self.logger.info(f"Productos con movimiento significativo: {len(df_analisis)}")
+        self.logger.info(f"  - Con consumo (variación positiva): {len(df_analisis[df_analisis['variacion_semanal'] > 0])}")
+        self.logger.info(f"  - Con posible reabastecimiento: {len(reabastecimientos)}")
         
         return df_analisis
     
@@ -392,9 +526,17 @@ class InventoryAnalyzer:
             DataFrame con columna de alerta
         """
         def clasificar_alerta(row):
-            variacion = abs(row['variacion_semanal'])
+            variacion = row['variacion_semanal']
             stock_final = row['cantidad_final']
             promedio = row['promedio_semanal']
+            posible_reabastecimiento = row['posible_reabastecimiento']
+            
+            # Si hay posible reabastecimiento (variación negativa)
+            if posible_reabastecimiento:
+                return '🔵 REVISAR (Posible Reabastecimiento)'
+            
+            # Para variaciones positivas (consumo real)
+            variacion_abs = abs(variacion)
             
             # Calcular porcentaje de stock respecto al promedio
             if promedio > 0:
@@ -403,15 +545,15 @@ class InventoryAnalyzer:
                 porc_stock = 100
             
             # 🔴 Crítica
-            if variacion > 20 or porc_stock < 15:
+            if variacion_abs > 20 or porc_stock < 15:
                 return '🔴 CRÍTICA'
             
             # 🟠 Media
-            elif (10 <= variacion <= 20) or (15 <= porc_stock < 30):
+            elif (10 <= variacion_abs <= 20) or (15 <= porc_stock < 30):
                 return '🟠 MEDIA'
             
             # 🟡 Moderada
-            elif 1 <= variacion < 10:
+            elif 1 <= variacion_abs < 10:
                 return '🟡 MODERADA'
             
             # 🟢 Estable
@@ -448,15 +590,15 @@ class InventoryAnalyzer:
         # Preparar DataFrame para exportación
         df_export = df_reporte[[
             'codigo_producto', 'nombre_producto', 'cantidad_inicial', 'cantidad_final',
-            'variacion_semanal', 'promedio_semanal', 'dias_con_registro', 'alerta',
-            'fecha_inicial', 'fecha_final'
+            'variacion_semanal', 'promedio_semanal', 'dias_con_registro', 'posible_reabastecimiento',
+            'alerta', 'fecha_inicial', 'fecha_final'
         ]].copy()
         
         # Renombrar columnas para el reporte
         df_export.columns = [
             'Código', 'Producto', 'Stock Inicial', 'Stock Final',
-            'Variación', 'Promedio Semanal', 'Días Registrados', 'Estado',
-            'Fecha Inicio', 'Fecha Fin'
+            'Variación', 'Promedio Semanal', 'Días Registrados', 'Posible Reabastecimiento',
+            'Estado', 'Fecha Inicio', 'Fecha Fin'
         ]
         
         # Generar nombre de archivo
@@ -469,6 +611,8 @@ class InventoryAnalyzer:
             df_export.to_excel(writer, sheet_name='Reporte Semanal', index=False)
             
             # Hoja de resumen
+            productos_revisar = len(df_export[df_export['Estado'] == '🔵 REVISAR (Posible Reabastecimiento)'])
+            
             df_resumen = pd.DataFrame({
                 'Métrica': [
                     'Fecha de Generación',
@@ -477,6 +621,7 @@ class InventoryAnalyzer:
                     'Productos con Alerta Media',
                     'Productos con Alerta Moderada',
                     'Productos Estables',
+                    'Productos a Revisar (Posible Reabastecimiento)',
                     'Días Analizados (Total)',
                     'Días Laborables (L-V)',
                     'Jornadas Extraordinarias (S-D)',
@@ -489,6 +634,7 @@ class InventoryAnalyzer:
                     len(df_export[df_export['Estado'] == '🟠 MEDIA']),
                     len(df_export[df_export['Estado'] == '🟡 MODERADA']),
                     len(df_export[df_export['Estado'] == '🟢 ESTABLE']),
+                    productos_revisar,
                     df_export['Días Registrados'].max(),
                     len([d for d in dias_faltantes if 'Monday' not in d and 'Tuesday' not in d and 
                         'Wednesday' not in d and 'Thursday' not in d and 'Friday' not in d]),
@@ -518,9 +664,15 @@ class InventoryAnalyzer:
         self.logger.info(f"Reporte generado exitosamente: {archivo_salida}")
         return archivo_salida, df_export
     
-    def ejecutar_analisis_completo(self):
+    def ejecutar_analisis_completo(self, semana_inicio=None, fecha_inicio_filtro=None, 
+                                   fecha_fin_filtro=None):
         """
         Ejecuta el proceso completo de análisis y genera el reporte
+        
+        Args:
+            semana_inicio: Fecha de inicio de semana (para modo semana)
+            fecha_inicio_filtro: Fecha inicio para rango personalizado
+            fecha_fin_filtro: Fecha fin para rango personalizado
         
         Returns:
             Ruta del archivo de reporte generado
@@ -530,8 +682,12 @@ class InventoryAnalyzer:
             self.logger.info("INICIO DEL ANÁLISIS SEMANAL DE INVENTARIO")
             self.logger.info("="*80)
             
-            # 1. Cargar archivos
-            df_consolidado, dias_faltantes = self.cargar_archivos_semana()
+            # 1. Cargar archivos (con o sin rango personalizado)
+            df_consolidado, dias_faltantes = self.cargar_archivos_semana(
+                semana_inicio=semana_inicio,
+                fecha_inicio_filtro=fecha_inicio_filtro,
+                fecha_fin_filtro=fecha_fin_filtro
+            )
             
             # 2. Calcular variaciones
             df_analisis = self.calcular_variaciones(df_consolidado)
