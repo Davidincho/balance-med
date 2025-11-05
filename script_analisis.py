@@ -55,17 +55,25 @@ class InventoryAnalyzer:
         )
         self.logger = logging.getLogger(__name__)
         
-    def cargar_archivos_semana(self, semana_inicio=None, auto_detectar=True):
+    def cargar_archivos_semana(self, semana_inicio=None, auto_detectar=True, 
+                               fecha_inicio_filtro=None, fecha_fin_filtro=None):
         """
-        Carga los archivos de inventario de la semana
+        Carga los archivos de inventario de la semana o rango personalizado
         
         Args:
             semana_inicio: Fecha de inicio de semana (lunes). Si es None, usa la semana actual
             auto_detectar: Si True y no encuentra archivos en semana_inicio, busca la última semana disponible
+            fecha_inicio_filtro: Fecha de inicio para rango personalizado (opcional)
+            fecha_fin_filtro: Fecha fin para rango personalizado (opcional)
             
         Returns:
             DataFrame consolidado con todos los días válidos
         """
+        # Modo de rango personalizado
+        if fecha_inicio_filtro and fecha_fin_filtro:
+            return self._cargar_archivos_rango_personalizado(fecha_inicio_filtro, fecha_fin_filtro)
+        
+        # Modo de semana (código original)
         if semana_inicio is None:
             hoy = datetime.now()
             # Calcular el lunes de la semana actual
