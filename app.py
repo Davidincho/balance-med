@@ -60,6 +60,40 @@ with st.sidebar:
     )
     
     st.divider()
+    
+    st.subheader("📦 Configuración de Stock Mínimo")
+    
+    usar_promedio = st.radio(
+        "Método de cálculo:",
+        options=["Basado en promedio semanal", "Valor fijo global"],
+        index=0,
+        help="Promedio semanal: más dinámico, se adapta a cada producto\nValor fijo: mismo stock mínimo para todos"
+    )
+    
+    if usar_promedio == "Basado en promedio semanal":
+        factor_promedio = st.slider(
+            "Factor del promedio semanal:",
+            min_value=0.1,
+            max_value=2.0,
+            value=0.5,
+            step=0.1,
+            help="0.5 = media semana de demanda\n1.0 = una semana completa\n0.3 = 30% del promedio"
+        )
+        st.caption(f"Stock mínimo = Promedio Semanal × {factor_promedio}")
+        stock_minimo_global = 100  # No se usa pero se pasa
+        usar_promedio_semanal = True
+    else:
+        stock_minimo_global = st.number_input(
+            "Stock mínimo (unidades):",
+            min_value=1,
+            value=100,
+            step=10,
+            help="Mismo valor para todos los productos"
+        )
+        factor_promedio = 0.5  # No se usa
+        usar_promedio_semanal = False
+    
+    st.divider()
     st.subheader("📁 Cargar Archivos")
     st.markdown("Sube los archivos CSV de inventario")
     st.caption("Mínimo 3 días requeridos")
@@ -123,11 +157,14 @@ if archivos_subidos:
                             f.write(archivo.getbuffer())
                 
                 with st.spinner("🔄 Procesando datos..."):
-                    # Crear analizador
+                    # Crear analizador con configuración del usuario
                     analyzer = InventoryAnalyzer(
                         input_folder=temp_input,
                         output_folder=temp_output,
-                        incluir_fines_semana=incluir_fines_semana
+                        incluir_fines_semana=incluir_fines_semana,
+                        stock_minimo_global=stock_minimo_global,
+                        usar_promedio_semanal=usar_promedio_semanal,
+                        factor_promedio=factor_promedio
                     )
                     
                     # Determinar fecha de inicio según el modo
@@ -168,11 +205,12 @@ if archivos_subidos:
                     
                     # Extraer métricas del resumen
                     total_productos = int(df_resumen[df_resumen['Métrica'] == 'Total Productos Analizados']['Valor'].values[0])
-                    criticas = int(df_resumen[df_resumen['Métrica'] == 'Productos con Alerta Crítica']['Valor'].values[0])
-                    medias = int(df_resumen[df_resumen['Métrica'] == 'Productos con Alerta Media']['Valor'].values[0])
-                    moderadas = int(df_resumen[df_resumen['Métrica'] == 'Productos con Alerta Moderada']['Valor'].values[0])
-                    estables = int(df_resumen[df_resumen['Métrica'] == 'Productos Estables']['Valor'].values[0])
+                    sin_existencias = int(df_resumen[df_resumen['Métrica'] == 'Productos Sin Existencias']['Valor'].values[0])
+                    bajo_stock = int(df_resumen[df_resumen['Métrica'] == 'Productos con Bajo Stock']['Valor'].values[0])
+                    en_descenso = int(df_resumen[df_resumen['Métrica'] == 'Productos En Descenso']['Valor'].values[0])
+                    normales = int(df_resumen[df_resumen['Métrica'] == 'Productos Normales']['Valor'].values[0])
                     revisar = int(df_resumen[df_resumen['Métrica'] == 'Productos a Revisar (Posible Reabastecimiento)']['Valor'].values[0])
+                    total_reabastecer = df_resumen[df_resumen['Métrica'] == 'Total Unidades a Reabastecer']['Valor'].values[0]
                     
                     # Métricas principales
                     col1, col2, col3, col4, col5 = st.columns(5)
@@ -180,19 +218,29 @@ if archivos_subidos:
                     with col1:
                         st.metric("Total Productos", total_productos)
                     with col2:
-                        st.metric("🔴 Críticas", criticas, 
-                                delta=f"{(criticas/total_productos*100):.1f}%",
+                        st.metric("🔴 Sin Stock", sin_existencias, 
+                                delta="¡Urgente!",
                                 delta_color="inverse")
                     with col3:
-                        st.metric("🟠 Medias", medias,
-                                delta=f"{(medias/total_productos*100):.1f}%")
+                        st.metric("🟠 Bajo Stock", bajo_stock,
+                                delta="Reabastecer pronto")
                     with col4:
-                        st.metric("🟢 Estables", estables,
-                                delta=f"{(estables/total_productos*100):.1f}%",
-                                delta_color="normal")
+                        st.metric("🟡 En Descenso", en_descenso,
+                                delta="Monitorear")
                     with col5:
-                        st.metric("🔵 A Revisar", revisar,
-                                delta="Posibles reabastecimientos")
+                        st.metric("🟢 Normales", normales,
+                                delta="OK",
+                                delta_color="normal")
+                    
+                    # Segunda fila de métricas
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("🔵 A Revisar", revisar, delta="Posibles reabastecimientos")
+                    with col2:
+                        st.metric("📦 Total a Reabastecer", total_reabastecer)
+                    with col3:
+                        config_msg = f"{factor_promedio}x promedio" if usar_promedio_semanal else f"{stock_minimo_global} unidades"
+                        st.metric("⚙️ Stock Mínimo", config_msg)
                     
                     st.divider()
                     
@@ -203,11 +251,11 @@ if archivos_subidos:
                     st.divider()
                     
                     # Gráfico de distribución de alertas
-                    st.subheader("📊 Distribución de Alertas")
+                    st.subheader("📊 Distribución de Estados")
                     
                     datos_grafico = pd.DataFrame({
-                        'Estado': ['🔴 Crítica', '🟠 Media', '🟡 Moderada', '🟢 Estable', '🔵 Revisar'],
-                        'Cantidad': [criticas, medias, moderadas, estables, revisar]
+                        'Estado': ['🔴 Sin Stock', '🟠 Bajo Stock', '🟡 En Descenso', '🟢 Normal', '🔵 Revisar'],
+                        'Cantidad': [sin_existencias, bajo_stock, en_descenso, normales, revisar]
                     })
                     
                     col1, col2 = st.columns([2, 1])
@@ -250,6 +298,40 @@ if archivos_subidos:
                         st.success("✅ ¡Excelente! No hay productos en estado crítico")
                 
                 with tab3:
+                    st.subheader("🔵 Productos para Revisar (Posible Reabastecimiento)")
+                    
+                    # Filtrar productos con posible reabastecimiento
+                    df_revisar = df_reporte[df_reporte['Posible Reabastecimiento'] == True].copy()
+                    
+                    if len(df_revisar) > 0:
+                        st.info(f"ℹ️ {len(df_revisar)} productos con variación negativa (posible reabastecimiento)")
+                        st.markdown("""
+                        **¿Qué significa esto?**
+                        - El stock **aumentó** entre el día inicial y final
+                        - Puede indicar que hubo entrada de mercancía
+                        - Verifica si corresponde a un reabastecimiento real
+                        """)
+                        
+                        st.dataframe(
+                            df_revisar[['Código', 'Producto', 'Stock Inicial', 'Stock Final', 
+                                       'Variación', 'Promedio Semanal', 'Estado']],
+                            use_container_width=True,
+                            hide_index=True,
+                            height=400
+                        )
+                        
+                        # Botón de descarga
+                        csv_revisar = df_revisar.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="📥 Descargar Productos a Revisar (CSV)",
+                            data=csv_revisar,
+                            file_name=f'productos_revisar_{datetime.now().strftime("%Y%m%d_%H%M")}.csv',
+                            mime='text/csv',
+                        )
+                    else:
+                        st.success("✅ No hay productos con posible reabastecimiento en este período")
+                
+                with tab5:
                     st.subheader("📋 Reporte Completo de Inventario")
                     
                     # Filtros
@@ -373,44 +455,49 @@ MED003,Losartán 50mg,180
         st.markdown("""
         ### 📚 Cómo usar este sistema:
         
-        #### 1️⃣ Prepara tus archivos
-        - Asegúrate que tengan las columnas: `codigo`, `nombre`, `cantidad`
-        - Nombra los archivos con la fecha: `inventario_YYYY-MM-DD.csv`
-        - Ten al menos 3 archivos de días diferentes
+        1. **Prepara tus archivos:**
+           - Formato: `inventario_YYYY-MM-DD.csv`
+           - Columnas requeridas: `codigo`, `nombre`, `cantidad`
+           - Mínimo 3 archivos (días diferentes)
         
-        #### 2️⃣ Configura opciones
-        - En el panel lateral, activa/desactiva "Incluir fines de semana"
+        2. **Configura el stock mínimo:**
+           - **Promedio semanal** (recomendado): se adapta a cada producto
+           - **Valor fijo**: mismo stock mínimo para todos
         
-        #### 3️⃣ Sube archivos
-        - Haz clic en "Browse files"
-        - Selecciona múltiples archivos (Ctrl/Cmd + clic)
-        - O arrastra y suelta los archivos
+        3. **Sube los archivos:**
+           - Haz clic en "Browse files" arriba
+           - Selecciona múltiples archivos (Ctrl/Cmd + clic)
         
-        #### 4️⃣ Analiza
-        - Haz clic en "🚀 Analizar Inventario"
-        - Espera mientras se procesa (puede tomar unos segundos)
+        4. **Analiza:**
+           - Haz clic en "Analizar Inventario"
+           - Revisa los resultados en las pestañas
         
-        #### 5️⃣ Revisa resultados
-        - **Resumen:** Métricas generales y gráficos
-        - **Alertas Críticas:** Productos que requieren atención inmediata
-        - **Datos Completos:** Tabla completa con filtros y búsqueda
-        - **Log:** Detalles técnicos del proceso
+        5. **Descarga:**
+           - Descarga el reporte en CSV o Excel
         
-        #### 6️⃣ Descarga
-        - Descarga reportes en CSV o Excel
-        - Guarda el log del proceso
-        
-        ---
-        
-        ### 🚦 Sistema de Alertas
+        ### 🚦 Nuevos Estados de Inventario:
         
         | Estado | Criterio | Acción |
         |--------|----------|--------|
-        | 🔴 **CRÍTICA** | Variación > 20 unidades O stock < 15% | Reabastecer URGENTE |
-        | 🟠 **MEDIA** | Variación 10-20 unidades O stock 15-30% | Revisar pronto |
-        | 🟡 **MODERADA** | Variación 1-9 unidades | Monitorear |
-        | 🟢 **ESTABLE** | Sin variaciones significativas | Todo OK |
+        | 🔴 **SIN EXISTENCIAS** | Stock Final = 0 | Reabastecer URGENTE |
+        | 🟠 **BAJO STOCK** | Stock Final ≤ Stock Mínimo | Reabastecer pronto |
+        | 🟡 **EN DESCENSO** | % Abastecimiento < 30% | Monitorear |
+        | 🟢 **NORMAL** | Stock saludable | Sin acción |
+        | 🔵 **REVISAR** | Variación negativa | Verificar reabastecimiento |
+        
+        ### 📦 Cálculo de Stock Mínimo:
+        
+        **Opción 1: Basado en promedio semanal (recomendado)**
+        - Stock Mínimo = Promedio Semanal × Factor
+        - Factor 0.5 = media semana de demanda
+        - Factor 1.0 = una semana completa
+        - Se adapta a cada producto según su rotación
+        
+        **Opción 2: Valor fijo global**
+        - Mismo stock mínimo para todos los productos
+        - Útil para inventarios homogéneos
         """)
+    
 
 # Footer
 st.divider()
