@@ -15,7 +15,8 @@ class InventoryAnalyzer:
     """
     
     def __init__(self, input_folder='./inventarios', output_folder='./reportes', 
-                 incluir_fines_semana=True):
+                 incluir_fines_semana=True, stock_minimo_global=100, 
+                 usar_promedio_semanal=True, factor_promedio=0.5):
         """
         Inicializa el analizador de inventario
         
@@ -23,11 +24,19 @@ class InventoryAnalyzer:
             input_folder: Carpeta donde están los archivos de inventario
             output_folder: Carpeta donde se guardarán los reportes
             incluir_fines_semana: Si True, busca archivos de sábado y domingo también
+            stock_minimo_global: Stock mínimo por defecto si no se usa promedio semanal
+            usar_promedio_semanal: Si True, calcula stock mínimo basado en promedio
+            factor_promedio: Multiplicador del promedio semanal para stock mínimo (ej: 0.5 = media semana)
         """
         self.input_folder = input_folder
         self.output_folder = output_folder
         self.min_dias_validos = 3
         self.incluir_fines_semana = incluir_fines_semana
+        
+        # Configuración de stock mínimo
+        self.stock_minimo_global = stock_minimo_global
+        self.usar_promedio_semanal = usar_promedio_semanal
+        self.factor_promedio = factor_promedio
         
         if incluir_fines_semana:
             self.dias_laborables = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
