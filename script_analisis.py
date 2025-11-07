@@ -535,14 +535,27 @@ class InventoryAnalyzer:
         # Identificar posibles reabastecimientos (variación negativa)
         df_analisis['posible_reabastecimiento'] = df_analisis['variacion_semanal'] < 0
         
-        # Calcular promedio semanal
-        promedios = df_consolidado.groupby('codigo_producto')['cantidad'].mean().reset_index()
-        promedios.rename(columns={'cantidad': 'promedio_semanal'}, inplace=True)
-        df_analisis = df_analisis.merge(promedios, on='codigo_producto', how='left')
+        # Calcular promedio de stock (promedio de todas las cantidades registradas)
+        promedios_stock = df_consolidado.groupby('codigo_producto')['cantidad'].mean().reset_index()
+        promedios_stock.rename(columns={'cantidad': 'promedio_stock'}, inplace=True)
+        df_analisis = df_analisis.merge(promedios_stock, on='codigo_producto', how='left')
         
         # Contar días con registro
         dias_registro = df_consolidado.groupby('codigo_producto').size().reset_index(name='dias_con_registro')
         df_analisis = df_analisis.merge(dias_registro, on='codigo_producto', how='left')
+        
+        # NUEVO: Calcular consumo promedio diario
+        def calcular_consumo_diario(row):
+            if row['dias_con_registro'] > 1 and not row['posible_reabastecimiento']:
+                # Solo calcular para productos con consumo real (no reabastecimientos)
+                return row['variacion_semanal'] / row['dias_con_registro']
+            elif row['posible_reabastecimiento']:
+                # Si hubo reabastecimiento, no podemos calcular consumo real
+                return 0
+            else:
+                return 0
+        
+        df_analisis['consumo_promedio_diario'] = df_analisis.apply(calcular_consumo_diario, axis=1)
         
         # Calcular variación máxima diaria para detectar reabastecimientos
         df_analisis['variacion_maxima_diaria'] = 0
@@ -574,56 +587,102 @@ class InventoryAnalyzer:
     
     def calcular_alertas(self, df_analisis):
         """
-        Calcula el indicador de alerta semafórica para cada producto
+        Calcula el indicador de alerta basado en stock mínimo y porcentaje de abastecimiento
         
         Args:
             df_analisis: DataFrame con variaciones
             
         Returns:
-            DataFrame con columna de alerta
+            DataFrame con columnas de alerta y reabastecimiento
         """
-        def clasificar_alerta(row):
-            variacion = row['variacion_semanal']
+        # Calcular stock mínimo por producto
+        def calcular_stock_minimo(row):
+            if self.usar_promedio_semanal:
+                # Opción A: Basado en consumo promedio diario
+                if row['consumo_promedio_diario'] > 0:
+                    # Stock mínimo = Consumo diario × factor × 7 (días)
+                    # Si factor = 0.5, cubre 3.5 días de consumo
+                    return row['consumo_promedio_diario'] * self.factor_promedio * 7
+                # Opción B: Si no hay consumo calculable, usar promedio de stock
+                elif row['promedio_stock'] > 0:
+                    return row['promedio_stock'] * self.factor_promedio
+                else:
+                    return self.stock_minimo_global
+            else:
+                # Stock mínimo global
+                return self.stock_minimo_global
+        
+        df_analisis['stock_minimo'] = df_analisis.apply(calcular_stock_minimo, axis=1)
+        
+        # Calcular porcentaje de abastecimiento
+        def calcular_porcentaje(row):
+            if row['cantidad_inicial'] > 0:
+                return (row['cantidad_final'] / row['cantidad_inicial']) * 100
+            else:
+                return 100  # Si no había stock inicial, considerar 100%
+        
+        df_analisis['porcentaje_abastecimiento'] = df_analisis.apply(calcular_porcentaje, axis=1)
+        
+        # Evaluar estado según las nuevas reglas
+        def evaluar_estado(row):
             stock_final = row['cantidad_final']
-            promedio = row['promedio_semanal']
-            posible_reabastecimiento = row['posible_reabastecimiento']
+            stock_minimo = row['stock_minimo']
+            porcentaje = row['porcentaje_abastecimiento']
+            variacion = row['variacion_semanal']
             
-            # Si hay posible reabastecimiento (variación negativa)
-            if posible_reabastecimiento:
+            # Caso especial: Posible reabastecimiento (variación negativa)
+            if variacion < 0:
                 return '🔵 REVISAR (Posible Reabastecimiento)'
             
-            # Para variaciones positivas (consumo real)
-            variacion_abs = abs(variacion)
-            
-            # Calcular porcentaje de stock respecto al promedio
-            if promedio > 0:
-                porc_stock = (stock_final / promedio) * 100
+            # Reglas de negocio según tu especificación
+            if stock_final <= 0:
+                return '🔴 SIN EXISTENCIAS'
+            elif stock_final <= stock_minimo:
+                return '🟠 BAJO STOCK'
+            elif porcentaje < 30:
+                return '🟡 EN DESCENSO'
             else:
-                porc_stock = 100
-            
-            # 🔴 Crítica
-            if variacion_abs > 20 or porc_stock < 15:
-                return '🔴 CRÍTICA'
-            
-            # 🟠 Media
-            elif (10 <= variacion_abs <= 20) or (15 <= porc_stock < 30):
-                return '🟠 MEDIA'
-            
-            # 🟡 Moderada
-            elif 1 <= variacion_abs < 10:
-                return '🟡 MODERADA'
-            
-            # 🟢 Estable
-            else:
-                return '🟢 ESTABLE'
+                return '🟢 NORMAL'
         
-        df_analisis['alerta'] = df_analisis.apply(clasificar_alerta, axis=1)
+        df_analisis['alerta'] = df_analisis.apply(evaluar_estado, axis=1)
+        
+        # Calcular cantidad a reabastecer
+        def calcular_reabastecer(row):
+            if row['variacion_semanal'] < 0:
+                # Si hubo reabastecimiento, no calcular
+                return 0
+            else:
+                # Cuánto falta para llegar al stock mínimo
+                return max(0, row['stock_minimo'] - row['cantidad_final'])
+        
+        df_analisis['cantidad_reabastecer'] = df_analisis.apply(calcular_reabastecer, axis=1)
+        
+        # Actualizar la columna posible_reabastecimiento
+        df_analisis['posible_reabastecimiento'] = df_analisis['variacion_semanal'] < 0
         
         # Estadísticas de alertas
         conteo_alertas = df_analisis['alerta'].value_counts()
+        self.logger.info("="*60)
         self.logger.info("Distribución de alertas:")
         for alerta, cantidad in conteo_alertas.items():
             self.logger.info(f"  {alerta}: {cantidad} productos")
+        
+        # Estadísticas de consumo
+        consumo_total = df_analisis[df_analisis['consumo_promedio_diario'] > 0]['consumo_promedio_diario'].sum()
+        productos_con_consumo = len(df_analisis[df_analisis['consumo_promedio_diario'] > 0])
+        if productos_con_consumo > 0:
+            self.logger.info(f"")
+            self.logger.info(f"Productos con consumo calculado: {productos_con_consumo}")
+            self.logger.info(f"Consumo promedio diario total: {consumo_total:.1f} unidades/día")
+        
+        # Estadísticas de reabastecimiento
+        productos_reabastecer = len(df_analisis[df_analisis['cantidad_reabastecer'] > 0])
+        if productos_reabastecer > 0:
+            total_reabastecer = df_analisis['cantidad_reabastecer'].sum()
+            self.logger.info(f"")
+            self.logger.info(f"Productos que requieren reabastecimiento: {productos_reabastecer}")
+            self.logger.info(f"Total de unidades a reabastecer: {total_reabastecer:.0f}")
+        self.logger.info("="*60)
         
         return df_analisis
     
@@ -647,7 +706,9 @@ class InventoryAnalyzer:
         # Preparar DataFrame para exportación
         df_export = df_reporte[[
             'codigo_producto', 'nombre_producto', 'cantidad_inicial', 'cantidad_final',
-            'variacion_semanal', 'promedio_semanal', 'dias_con_registro', 'posible_reabastecimiento',
+            'variacion_semanal', 'consumo_promedio_diario', 'promedio_stock', 
+            'stock_minimo', 'porcentaje_abastecimiento',
+            'cantidad_reabastecer', 'dias_con_registro', 'posible_reabastecimiento',
             'alerta', 'fecha_inicial', 'fecha_final'
         ]].copy()
         
@@ -655,12 +716,17 @@ class InventoryAnalyzer:
         df_export['cantidad_inicial'] = df_export['cantidad_inicial'].round(0).astype(int)
         df_export['cantidad_final'] = df_export['cantidad_final'].round(0).astype(int)
         df_export['variacion_semanal'] = df_export['variacion_semanal'].round(0).astype(int)
-        df_export['promedio_semanal'] = df_export['promedio_semanal'].round(1)
+        df_export['consumo_promedio_diario'] = df_export['consumo_promedio_diario'].round(2)
+        df_export['promedio_stock'] = df_export['promedio_stock'].round(1)
+        df_export['stock_minimo'] = df_export['stock_minimo'].round(0).astype(int)
+        df_export['porcentaje_abastecimiento'] = df_export['porcentaje_abastecimiento'].round(1)
+        df_export['cantidad_reabastecer'] = df_export['cantidad_reabastecer'].round(0).astype(int)
         
         # Renombrar columnas para el reporte
         df_export.columns = [
             'Código', 'Producto', 'Stock Inicial', 'Stock Final',
-            'Variación', 'Promedio Semanal', 'Días Registrados', 'Posible Reabastecimiento',
+            'Variación Total', 'Consumo Diario', 'Promedio Stock', 'Stock Mínimo', '% Abastecimiento',
+            'Cantidad a Reabastecer', 'Días Registrados', 'Posible Reabastecimiento',
             'Estado', 'Fecha Inicio', 'Fecha Fin'
         ]
         
@@ -675,36 +741,47 @@ class InventoryAnalyzer:
             
             # Hoja de resumen
             productos_revisar = len(df_export[df_export['Estado'] == '🔵 REVISAR (Posible Reabastecimiento)'])
+            productos_sin_existencias = len(df_export[df_export['Estado'] == '🔴 SIN EXISTENCIAS'])
+            productos_bajo_stock = len(df_export[df_export['Estado'] == '🟠 BAJO STOCK'])
+            productos_descenso = len(df_export[df_export['Estado'] == '🟡 EN DESCENSO'])
+            productos_normales = len(df_export[df_export['Estado'] == '🟢 NORMAL'])
+            total_reabastecer = df_export['Cantidad a Reabastecer'].sum()
             
             df_resumen = pd.DataFrame({
                 'Métrica': [
                     'Fecha de Generación',
                     'Total Productos Analizados',
-                    'Productos con Alerta Crítica',
-                    'Productos con Alerta Media',
-                    'Productos con Alerta Moderada',
-                    'Productos Estables',
+                    'Productos Sin Existencias',
+                    'Productos con Bajo Stock',
+                    'Productos En Descenso',
+                    'Productos Normales',
                     'Productos a Revisar (Posible Reabastecimiento)',
+                    'Total Unidades a Reabastecer',
                     'Días Analizados (Total)',
                     'Días Laborables (L-V)',
                     'Jornadas Extraordinarias (S-D)',
-                    'Días Sin Archivo'
+                    'Días Sin Archivo',
+                    'Configuración: Stock Mínimo',
+                    'Configuración: Factor Promedio Semanal'
                 ],
                 'Valor': [
                     datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                     len(df_export),
-                    len(df_export[df_export['Estado'] == '🔴 CRÍTICA']),
-                    len(df_export[df_export['Estado'] == '🟠 MEDIA']),
-                    len(df_export[df_export['Estado'] == '🟡 MODERADA']),
-                    len(df_export[df_export['Estado'] == '🟢 ESTABLE']),
+                    productos_sin_existencias,
+                    productos_bajo_stock,
+                    productos_descenso,
+                    productos_normales,
                     productos_revisar,
+                    f"{total_reabastecer:.0f} unidades",
                     df_export['Días Registrados'].max(),
                     len([d for d in dias_faltantes if 'Monday' not in d and 'Tuesday' not in d and 
                         'Wednesday' not in d and 'Thursday' not in d and 'Friday' not in d]),
                     df_export['Días Registrados'].max() - len([d for d in dias_faltantes if 
                         'Monday' not in d and 'Tuesday' not in d and 'Wednesday' not in d and 
                         'Thursday' not in d and 'Friday' not in d]),
-                    ', '.join(dias_faltantes) if dias_faltantes else 'Ninguno'
+                    ', '.join(dias_faltantes) if dias_faltantes else 'Ninguno',
+                    f"Basado en promedio semanal x {self.factor_promedio}" if self.usar_promedio_semanal else f"{self.stock_minimo_global} unidades",
+                    f"{self.factor_promedio * 100:.0f}% del promedio" if self.usar_promedio_semanal else "No aplica"
                 ]
             })
             df_resumen.to_excel(writer, sheet_name='Resumen', index=False)
@@ -790,8 +867,14 @@ if __name__ == "__main__":
     analyzer = InventoryAnalyzer(
         input_folder='./inventarios',      # Carpeta con archivos de entrada
         output_folder='./reportes',        # Carpeta donde se guarda el reporte
-        incluir_fines_semana=True          # True: incluye sábados/domingos
-                                           # False: solo lunes a viernes
+        incluir_fines_semana=True,         # True: incluye sábados/domingos
+        
+        # CONFIGURACIÓN DE STOCK MÍNIMO
+        stock_minimo_global=100,           # Stock mínimo por defecto (si no se usa promedio)
+        usar_promedio_semanal=True,        # True: usa promedio semanal * factor
+        factor_promedio=0.5                # 0.5 = media semana de demanda
+                                           # 1.0 = una semana completa
+                                           # 0.3 = 30% del promedio
     )
     
     # ========================================================================
