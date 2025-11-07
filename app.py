@@ -449,10 +449,41 @@ if archivos_subidos:
                         )
                     else:
                         st.info("No se encontró archivo de log")
-                
+                    with tab6:
+                    st.subheader("🔧 Información de Debug")
+                    
+                    st.markdown("### 📋 Estructura del Resumen")
+                    st.dataframe(df_resumen, use_container_width=True)
+                    
+                    st.markdown("### 📊 Estados en el Reporte")
+                    if 'Estado' in df_reporte.columns:
+                        estados_unicos = df_reporte['Estado'].value_counts()
+                        st.dataframe(estados_unicos, use_container_width=True)
+                    else:
+                        st.error("La columna 'Estado' no existe en el reporte")
+                    
+                    st.markdown("### 📁 Columnas del Reporte")
+                    st.write(list(df_reporte.columns))
+                    
+                    st.markdown("### 🔢 Valores de Variables")
+                    st.json({
+                        "total_productos": total_productos,
+                        "sin_existencias": sin_existencias,
+                        "bajo_stock": bajo_stock,
+                        "en_descenso": en_descenso,
+                        "normales": normales,
+                        "revisar": revisar,
+                        "total_reabastecer": str(total_reabastecer)
+                    })
+            
             except Exception as e:
                 st.error(f"❌ Error durante el análisis:")
                 st.exception(e)
+                
+                # Mostrar más información del error
+                with st.expander("Ver detalles técnicos del error"):
+                    import traceback
+                    st.code(traceback.format_exc())
             
             finally:
                 # Limpiar carpeta temporal
