@@ -192,25 +192,65 @@ if archivos_subidos:
                     )
                     
                     # Leer el reporte generado
-                    df_reporte = pd.read_excel(archivo_reporte, sheet_name='Reporte Semanal')
-                    df_resumen = pd.read_excel(archivo_reporte, sheet_name='Resumen')
+                    try:
+                        df_reporte = pd.read_excel(archivo_reporte, sheet_name='Reporte Semanal')
+                        df_resumen = pd.read_excel(archivo_reporte, sheet_name='Resumen')
+                        
+                        # Debug: mostrar estructura del resumen
+                        if df_resumen.empty:
+                            st.warning("⚠️ La hoja de resumen está vacía")
+                        else:
+                            st.info(f"✓ Resumen cargado: {len(df_resumen)} filas")
+                            
+                    except Exception as e:
+                        st.error(f"Error al leer el archivo Excel: {str(e)}")
+                        st.error("Revisa el log para más detalles")
+                        raise
                 
                 st.success("✅ Análisis completado exitosamente")
                 
                 # MOSTRAR RESULTADOS
-                tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Resumen", "🔴 Alertas Críticas", "🔵 Revisar", "📈 Datos Completos", "📋 Log"])
+                tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📊 Resumen", "🔴 Urgentes", "🔵 Revisar", "📈 Datos Completos", "📋 Log", "🔧 Debug"])
                 
                 with tab1:
                     st.subheader("📈 Resumen del Análisis")
                     
-                    # Extraer métricas del resumen
-                    total_productos = int(df_resumen[df_resumen['Métrica'] == 'Total Productos Analizados']['Valor'].values[0])
-                    sin_existencias = int(df_resumen[df_resumen['Métrica'] == 'Productos Sin Existencias']['Valor'].values[0])
-                    bajo_stock = int(df_resumen[df_resumen['Métrica'] == 'Productos con Bajo Stock']['Valor'].values[0])
-                    en_descenso = int(df_resumen[df_resumen['Métrica'] == 'Productos En Descenso']['Valor'].values[0])
-                    normales = int(df_resumen[df_resumen['Métrica'] == 'Productos Normales']['Valor'].values[0])
-                    revisar = int(df_resumen[df_resumen['Métrica'] == 'Productos a Revisar (Posible Reabastecimiento)']['Valor'].values[0])
-                    total_reabastecer = df_resumen[df_resumen['Métrica'] == 'Total Unidades a Reabastecer']['Valor'].values[0]
+                    # Extraer métricas del resumen con manejo de errores
+                    def obtener_metrica(df_resumen, nombre_metrica, default=0):
+                        try:
+                            resultado = df_resumen[df_resumen['Métrica'] == nombre_metrica]['Valor'].values
+                            if len(resultado) > 0:
+                                valor = resultado[0]
+                                # Si es string con "unidades", extraer el número
+                                if isinstance(valor, str) and 'unidades' in valor:
+                                    return valor.split()[0]
+                                return int(valor) if not isinstance(valor, str) else valor
+                            return default
+                        except:
+                            return default
+                    
+                    total_productos = obtener_metrica(df_resumen, 'Total Productos Analizados', 0)
+                    sin_existencias = obtener_metrica(df_resumen, 'Productos Sin Existencias', 0)
+                    bajo_stock = obtener_metrica(df_resumen, 'Productos con Bajo Stock', 0)
+                    en_descenso = obtener_metrica(df_resumen, 'Productos En Descenso', 0)
+                    normales = obtener_metrica(df_resumen, 'Productos Normales', 0)
+                    revisar = obtener_metrica(df_resumen, 'Productos a Revisar (Posible Reabastecimiento)', 0)
+                    total_reabastecer = obtener_metrica(df_resumen, 'Total Unidades a Reabastecer', '0 unidades')
+                    
+                    # Si no hay datos en el resumen, calcular directamente del reporte
+                    if total_productos == 0:
+                        st.warning("⚠️ No se pudo leer el resumen del Excel. Calculando directamente...")
+                        total_productos = len(df_reporte)
+                        sin_existencias = len(df_reporte[df_reporte['Estado'] == '🔴 SIN EXISTENCIAS'])
+                        bajo_stock = len(df_reporte[df_reporte['Estado'] == '🟠 BAJO STOCK'])
+                        en_descenso = len(df_reporte[df_reporte['Estado'] == '🟡 EN DESCENSO'])
+                        normales = len(df_reporte[df_reporte['Estado'] == '🟢 NORMAL'])
+                        revisar = len(df_reporte[df_reporte['Estado'].str.contains('REVISAR', na=False)])
+                        
+                        if 'Cantidad a Reabastecer' in df_reporte.columns:
+                            total_reabastecer = f"{df_reporte['Cantidad a Reabastecer'].sum():.0f} unidades"
+                        else:
+                            total_reabastecer = "No disponible"
                     
                     # Métricas principales
                     col1, col2, col3, col4, col5 = st.columns(5)
